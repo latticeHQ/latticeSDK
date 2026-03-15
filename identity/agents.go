@@ -153,9 +153,9 @@ func (s *Service) CreateAgentBuild(ctx context.Context, agentID uuid.UUID, req t
 	return build, nil
 }
 
-// GetAgentQuota returns budget/quota information for an agent owner.
-func (s *Service) GetAgentQuota(ctx context.Context, ownerID uuid.UUID) (types.AgentQuota, error) {
-	resp, err := s.client.Request(ctx, http.MethodGet, fmt.Sprintf("/api/v2/agents/quota/%s", ownerID), nil)
+// GetAgentQuota returns budget/quota information for a member within an organization.
+func (s *Service) GetAgentQuota(ctx context.Context, orgID, userID uuid.UUID) (types.AgentQuota, error) {
+	resp, err := s.client.Request(ctx, http.MethodGet, fmt.Sprintf("/api/v2/organizations/%s/members/%s/agent-quota", orgID, userID), nil)
 	if err != nil {
 		return types.AgentQuota{}, err
 	}

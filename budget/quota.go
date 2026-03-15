@@ -12,9 +12,9 @@ import (
 	"github.com/latticehq/latticesdk/types"
 )
 
-// GetQuota returns the budget quota for an owner (user or organization).
-func (s *Service) GetQuota(ctx context.Context, ownerID uuid.UUID) (types.AgentQuota, error) {
-	resp, err := s.client.Request(ctx, http.MethodGet, fmt.Sprintf("/api/v2/agents/quota/%s", ownerID), nil)
+// GetQuota returns the budget quota for a member within an organization.
+func (s *Service) GetQuota(ctx context.Context, orgID, userID uuid.UUID) (types.AgentQuota, error) {
+	resp, err := s.client.Request(ctx, http.MethodGet, fmt.Sprintf("/api/v2/organizations/%s/members/%s/agent-quota", orgID, userID), nil)
 	if err != nil {
 		return types.AgentQuota{}, err
 	}
@@ -31,9 +31,9 @@ func (s *Service) GetQuota(ctx context.Context, ownerID uuid.UUID) (types.AgentQ
 	return quota, nil
 }
 
-// CheckBudget returns true if the owner has remaining budget.
-func (s *Service) CheckBudget(ctx context.Context, ownerID uuid.UUID) (bool, error) {
-	quota, err := s.GetQuota(ctx, ownerID)
+// CheckBudget returns true if the member has remaining budget within the organization.
+func (s *Service) CheckBudget(ctx context.Context, orgID, userID uuid.UUID) (bool, error) {
+	quota, err := s.GetQuota(ctx, orgID, userID)
 	if err != nil {
 		return false, err
 	}
