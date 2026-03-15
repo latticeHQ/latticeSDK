@@ -36,7 +36,7 @@ func main() {
 	}
 
 	for _, org := range orgs {
-		hasQuota, err := s.Budget.CheckBudget(ctx, org.ID)
+		hasQuota, err := s.Budget.CheckBudget(ctx, org.ID, me.ID)
 		if err != nil {
 			log.Printf("budget check failed for org %s: %v", org.Name, err)
 			continue
