@@ -11,9 +11,9 @@ import (
 
 // CostSummary contains aggregated cost information.
 type CostSummary struct {
-	TotalCredits     int `json:"total_credits"`
-	UsedCredits      int `json:"used_credits"`
-	RemainingCredits int `json:"remaining_credits"`
+	TotalCredits     int64 `json:"total_credits"`
+	UsedCredits      int64 `json:"used_credits"`
+	RemainingCredits int64 `json:"remaining_credits"`
 }
 
 // GetCostSummary returns the cost summary for the deployment.
