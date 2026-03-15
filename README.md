@@ -4,8 +4,8 @@
 
 ### The complete Go SDK for Lattice Runtime.
 
-**380 functions across 25 packages — full API parity with the platform.**
-**Build Department Stacks without touching Runtime source code.**
+**429 functions across 29 packages — full API parity with the platform.**
+**Build Department Stacks and custom agents without touching Runtime source code.**
 
 ---
 
@@ -112,6 +112,14 @@ func main() {
 | `audit` | 4 | Audit trail — query logs, emit custom events |
 | `budget` | 4 | Budget control — quotas, cost reporting |
 
+### Agent-Side SDK
+| Package | Funcs | Description |
+|---------|-------|-------------|
+| `agentsdk` | 23 | Agent-to-sidecar connectivity — connections, PTY, file ops, debug |
+| `sidecarsdk` | 13 | Sidecar-to-Runtime communication — cloud auth, lifecycle, logs, stats |
+| `toolsdk` | 7+32 | AI tool definitions — 32 typed tools with handler infrastructure |
+| `healthsdk` | 6 | Deployment health checks — DERP, database, websocket, provisioners |
+
 ### Utilities
 | Package | Funcs | Description |
 |---------|-------|-------------|
@@ -122,24 +130,22 @@ func main() {
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────┐
-│                  Your Department Stack            │
-│  (HR, Legal, Finance, Security, Engineering...)   │
-├─────────────────────────────────────────────────┤
-│                   latticeSDK                      │
-│  ┌─────────┐ ┌──────────┐ ┌──────────────────┐  │
-│  │ agents  │ │ sessions │ │   templates      │  │
-│  │ users   │ │ tasks    │ │   deployments    │  │
-│  │ authz   │ │ evals    │ │   coordination   │  │
-│  │ groups  │ │ audit    │ │   lifecycle      │  │
-│  │ oauth2  │ │ budget   │ │   provisioners   │  │
-│  └─────────┘ └──────────┘ └──────────────────┘  │
-│                    client                         │
-│            (HTTP, SSE, pagination)                │
-├─────────────────────────────────────────────────┤
-│              Lattice Runtime API                  │
-│         access.latticeruntime.com                 │
-└─────────────────────────────────────────────────┘
+┌──────────────────────┐     ┌──────────────────────┐
+│  Your Department Stack│     │  Your Custom Agent    │
+│  (HR, Legal, Finance) │     │  (runs in workspace)  │
+├──────────────────────┤     ├──────────────────────┤
+│      latticeSDK       │     │      latticeSDK       │
+│  ┌────────┐ ┌───────┐│     │  ┌──────────────────┐│
+│  │ agents │ │ authz ││     │  │   sidecarsdk     ││
+│  │ users  │ │ audit ││     │  │   agentsdk       ││
+│  │ tasks  │ │budget ││     │  │   toolsdk        ││
+│  │ evals  │ │coord. ││     │  │   healthsdk      ││
+│  └────────┘ └───────┘│     │  └──────────────────┘│
+│       client          │     │       client          │
+├──────────────────────┤     ├──────────────────────┤
+│                Lattice Runtime API                  │
+│           access.latticeruntime.com                 │
+└─────────────────────────────────────────────────────┘
 ```
 
 **Zero dependency on Runtime source code.** Only external dependency: `github.com/google/uuid`.
@@ -165,12 +171,42 @@ myAgents, _, _ := agentSvc.ListAgents(ctx, nil)
 myTemplates, _ := tmplSvc.ListTemplates(ctx, nil)
 ```
 
+## Building a Custom Agent
+
+Use `sidecarsdk` and `toolsdk` to build agents that report back to Runtime:
+
+```go
+import (
+    "github.com/latticehq/latticesdk/client"
+    "github.com/latticehq/latticesdk/sidecarsdk"
+    "github.com/latticehq/latticesdk/toolsdk"
+)
+
+c, _ := client.New(os.Getenv("LATTICE_RUNTIME_URL"), client.WithSessionToken(token))
+
+sidecar := sidecarsdk.New(c)
+
+// Report lifecycle state
+sidecar.PostStartup(ctx, sidecarsdk.PostStartupRequest{Version: "1.0.0"})
+sidecar.PostLifecycle(ctx, sidecarsdk.PostLifecycleRequest{State: sidecarsdk.LifecycleReady})
+
+// Send logs
+sidecar.PatchLogs(ctx, sidecarsdk.PatchLogsRequest{
+    LogSourceID: sourceID,
+    Logs: []sidecarsdk.Log{{Output: "Agent ready", Level: sidecarsdk.LogLevelInfo}},
+})
+
+// Use AI tools
+tools := toolsdk.AllTools()
+deps := toolsdk.NewDeps(c)
+```
+
 ## The Ecosystem
 
 | Component | What it does | License |
 |-----------|-------------|---------|
 | [**Runtime**](https://github.com/latticeHQ/latticeRuntime) | Coordination layer — identity, authorization, audit, budget, networking | Apache 2.0 |
-| [**SDK**](https://github.com/latticeHQ/latticeSDK) | Go SDK for building Department Stacks (380 functions, 25 packages) | Apache 2.0 |
+| [**SDK**](https://github.com/latticeHQ/latticeSDK) | Go SDK for building Department Stacks and custom agents (429 functions, 29 packages) | Apache 2.0 |
 | [**Workbench**](https://github.com/latticeHQ/latticeWorkbench) | Reference Engineering Stack — multi-model agent workspace | MIT |
 | [**Inference**](https://github.com/latticeHQ/latticeInference) | Local AI serving — MLX on Apple Silicon, zero-config clustering | Apache 2.0 |
 | [**Operator**](https://github.com/latticeHQ/latticeOperator) | Self-hosted deployment management for Lattice infrastructure | Apache 2.0 |

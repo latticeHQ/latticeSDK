@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/latticehq/latticesdk/agents"
+	"github.com/latticehq/latticesdk/agentsdk"
 	"github.com/latticehq/latticesdk/audit"
 	"github.com/latticehq/latticesdk/authz"
 	"github.com/latticehq/latticesdk/budget"
@@ -23,6 +24,7 @@ import (
 	"github.com/latticehq/latticesdk/files"
 	"github.com/latticehq/latticesdk/gitsshkeys"
 	"github.com/latticehq/latticesdk/groups"
+	"github.com/latticehq/latticesdk/healthsdk"
 	"github.com/latticehq/latticesdk/identity"
 	"github.com/latticehq/latticesdk/insights"
 	"github.com/latticehq/latticesdk/licenses"
@@ -32,6 +34,7 @@ import (
 	"github.com/latticehq/latticesdk/provisioners"
 	"github.com/latticehq/latticesdk/replicas"
 	"github.com/latticehq/latticesdk/sessions"
+	"github.com/latticehq/latticesdk/sidecarsdk"
 	"github.com/latticehq/latticesdk/tasks"
 	"github.com/latticehq/latticesdk/templates"
 	"github.com/latticehq/latticesdk/users"
@@ -114,6 +117,17 @@ type Stack struct {
 	// GitSSHKeys provides Git SSH key management.
 	GitSSHKeys *gitsshkeys.Service
 
+	// --- Agent-side services ---
+
+	// AgentSDK provides agent-to-sidecar connectivity — connections, PTY, file ops, debug.
+	AgentSDK *agentsdk.Service
+
+	// SidecarSDK provides sidecar-to-Runtime communication — auth, lifecycle, logs, stats.
+	SidecarSDK *sidecarsdk.Service
+
+	// Health provides deployment health checks and diagnostics.
+	Health *healthsdk.Service
+
 	// Client is the underlying HTTP client. Use this for custom API calls.
 	Client *client.Client
 
@@ -162,6 +176,10 @@ func New(cfg Config) (*Stack, error) {
 		Licenses:      licenses.New(c),
 		Replicas:      replicas.New(c),
 		GitSSHKeys:    gitsshkeys.New(c),
+		// Agent-side
+		AgentSDK:   agentsdk.New(c),
+		SidecarSDK: sidecarsdk.New(c),
+		Health:     healthsdk.New(c),
 		// Internals
 		Client: c,
 		config: cfg,
