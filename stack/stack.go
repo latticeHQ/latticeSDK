@@ -11,19 +11,38 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/latticehq/latticesdk/agents"
 	"github.com/latticehq/latticesdk/audit"
 	"github.com/latticehq/latticesdk/authz"
 	"github.com/latticehq/latticesdk/budget"
 	"github.com/latticehq/latticesdk/client"
 	"github.com/latticehq/latticesdk/coordination"
+	"github.com/latticehq/latticesdk/deployments"
+	"github.com/latticehq/latticesdk/evals"
+	"github.com/latticehq/latticesdk/externalauth"
+	"github.com/latticehq/latticesdk/files"
+	"github.com/latticehq/latticesdk/gitsshkeys"
+	"github.com/latticehq/latticesdk/groups"
 	"github.com/latticehq/latticesdk/identity"
+	"github.com/latticehq/latticesdk/insights"
+	"github.com/latticehq/latticesdk/licenses"
 	"github.com/latticehq/latticesdk/lifecycle"
+	"github.com/latticehq/latticesdk/notifications"
+	"github.com/latticehq/latticesdk/oauth2"
+	"github.com/latticehq/latticesdk/provisioners"
+	"github.com/latticehq/latticesdk/replicas"
+	"github.com/latticehq/latticesdk/sessions"
+	"github.com/latticehq/latticesdk/tasks"
+	"github.com/latticehq/latticesdk/templates"
+	"github.com/latticehq/latticesdk/users"
 )
 
 // Stack is the main entry point for a Department Stack. It provides access to
 // all Lattice Runtime services and manages registration, heartbeats, and
 // graceful shutdown.
 type Stack struct {
+	// --- Core coordination services ---
+
 	// Identity provides agent, user, organization, and token management.
 	Identity *identity.Service
 
@@ -41,6 +60,59 @@ type Stack struct {
 
 	// Lifecycle provides stack registration and health reporting.
 	Lifecycle *lifecycle.Service
+
+	// --- Full platform services ---
+
+	// Agents provides complete agent management — CRUD, builds, proxies, sidecars.
+	Agents *agents.Service
+
+	// Sessions provides session management — CRUD, builds, sidecars, real-time.
+	Sessions *sessions.Service
+
+	// Templates provides template management — CRUD, versions, ACL, parameters.
+	Templates *templates.Service
+
+	// Users provides user management — CRUD, auth, roles, org membership.
+	Users *users.Service
+
+	// Deployments provides deployment config, stats, appearance, and entitlements.
+	Deployments *deployments.Service
+
+	// Tasks provides AI task management — CRUD, send, logs.
+	Tasks *tasks.Service
+
+	// Evals provides evaluation management — runs, comparisons, passes.
+	Evals *evals.Service
+
+	// Groups provides group management and IDP sync settings.
+	Groups *groups.Service
+
+	// OAuth2 provides OAuth2 provider app management.
+	OAuth2 *oauth2.Service
+
+	// Notifications provides notification settings, templates, and preferences.
+	Notifications *notifications.Service
+
+	// Files provides file upload and download.
+	Files *files.Service
+
+	// Insights provides usage analytics — latency, activity, template insights.
+	Insights *insights.Service
+
+	// Provisioners provides provisioner daemon and key management.
+	Provisioners *provisioners.Service
+
+	// ExternalAuth provides external authentication provider management.
+	ExternalAuth *externalauth.Service
+
+	// Licenses provides license management.
+	Licenses *licenses.Service
+
+	// Replicas provides replica information.
+	Replicas *replicas.Service
+
+	// GitSSHKeys provides Git SSH key management.
+	GitSSHKeys *gitsshkeys.Service
 
 	// Client is the underlying HTTP client. Use this for custom API calls.
 	Client *client.Client
@@ -65,14 +137,34 @@ func New(cfg Config) (*Stack, error) {
 	}
 
 	return &Stack{
+		// Core coordination
 		Identity:     identity.New(c),
 		Authz:        authz.New(c),
 		Audit:        audit.New(c),
 		Budget:       budget.New(c),
 		Coordination: coordination.New(c),
 		Lifecycle:    lifecycle.New(c),
-		Client:       c,
-		config:       cfg,
+		// Full platform
+		Agents:        agents.New(c),
+		Sessions:      sessions.New(c),
+		Templates:     templates.New(c),
+		Users:         users.New(c),
+		Deployments:   deployments.New(c),
+		Tasks:         tasks.New(c),
+		Evals:         evals.New(c),
+		Groups:        groups.New(c),
+		OAuth2:        oauth2.New(c),
+		Notifications: notifications.New(c),
+		Files:         files.New(c),
+		Insights:      insights.New(c),
+		Provisioners:  provisioners.New(c),
+		ExternalAuth:  externalauth.New(c),
+		Licenses:      licenses.New(c),
+		Replicas:      replicas.New(c),
+		GitSSHKeys:    gitsshkeys.New(c),
+		// Internals
+		Client: c,
+		config: cfg,
 	}, nil
 }
 
