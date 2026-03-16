@@ -40,7 +40,6 @@ func (s *Service) GetSharedState(ctx context.Context, key string) (SharedState, 
 // SetSharedState sets shared state for the given key.
 func (s *Service) SetSharedState(ctx context.Context, key string, value interface{}) error {
 	body := map[string]interface{}{
-		"key":   key,
 		"value": value,
 	}
 	resp, err := s.client.Request(ctx, http.MethodPut,
