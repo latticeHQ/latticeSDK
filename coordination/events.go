@@ -30,7 +30,7 @@ func (s *Service) Publish(ctx context.Context, req PublishRequest) error {
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		return client.ReadBodyAsError(resp)
 	}
 	return nil
