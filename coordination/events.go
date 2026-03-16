@@ -5,15 +5,20 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
+	"github.com/google/uuid"
 	"github.com/latticehq/latticesdk/client"
 )
 
 // Event represents a coordination event between stacks.
 type Event struct {
-	Topic   string          `json:"topic"`
-	Payload json.RawMessage `json:"payload"`
-	Source  string          `json:"source"`
+	ID            uuid.UUID       `json:"id" format:"uuid"`
+	SequenceID    int64           `json:"sequence_id"`
+	Topic         string          `json:"topic"`
+	Payload       json.RawMessage `json:"payload"`
+	SourceStackID *uuid.UUID      `json:"source_stack_id,omitempty" format:"uuid"`
+	CreatedAt     time.Time       `json:"created_at" format:"date-time"`
 }
 
 // PublishRequest publishes an event to a topic.

@@ -5,14 +5,16 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/latticehq/latticesdk/client"
 )
 
 // SharedState represents key-value state shared between stacks.
 type SharedState struct {
-	Key   string          `json:"key"`
-	Value json.RawMessage `json:"value"`
+	Key       string          `json:"key"`
+	Value     json.RawMessage `json:"value"`
+	UpdatedAt time.Time       `json:"updated_at" format:"date-time"`
 }
 
 // GetSharedState retrieves shared state by key.
